@@ -48,7 +48,8 @@ Globe.prototype = {
     }, this));
 
     var light = new THREE.DirectionalLight(0xffffff, 2.0);
-    light.position.set(-1.0, 0.5, -0.1);
+    light.position.set(0, 0.5, -0.1);
+    // light.position.set(-1.0, 0.5, -0.1);
     this.root.add(light, 'main_light');
 
     // for three.js inspector
@@ -72,11 +73,16 @@ Globe.prototype = {
     // load the things
     this.loader = new THREELoader(_.bind(this.loadedHandler, this), this.textureRoot);
     //this.loader.loadTexture('earth_data', 'earth_data.jpg'); // commented out because processing output is cached
+
+    this.loader.loadTexture('earth_color', 'mapbox.jpg');
+
+    /*
     this.loader.loadTexture('earth_color', 'earth_color_2x.jpg');
     this.loader.loadTexture('earth_disp', 'earth_disp.jpg');
     this.loader.loadTexture('earth_bump', 'earth_bump.jpg');
     this.loader.loadTexture('earth_spec', 'earth_spec.jpg');
-    this.loader.loadTexture('cloud_alpha_map', 'earth_cld_alpha.jpg');
+    */
+    //this.loader.loadTexture('cloud_alpha_map', 'earth_cld_alpha.jpg');
 
     // console things
     console.warn = function() {}; // shhhhh!
@@ -105,9 +111,9 @@ Globe.prototype = {
     this.processMarkerPositions();
 
     this.initEarth();
-    this.initStars();
+    //this.initStars();
     this.initMarkers();
-    this.initAsteroids();
+    //this.initAsteroids();
 
     if (!this.mobileMode) {
       this.initPostProcessing();
@@ -180,14 +186,14 @@ Globe.prototype = {
       toggleDebugCamera:function() {
         if (usingDebugCamera) {
           controls.enabled = false;
-          _this.earthRotationController.enabled = true;
+          // _this.earthRotationController.enabled = true;
           _this.pointerController.enabled = true;
           _this.root.get('extra_special').visible = false;
           _this.renderPass.camera = defaultCamera;
         }
         else {
           controls.enabled = true;
-          _this.earthRotationController.enabled = false;
+          // _this.earthRotationController.enabled = false;
           _this.pointerController.enabled = false;
           _this.root.get('extra_special').visible = true;
           _this.renderPass.camera = debugCamera;
@@ -236,7 +242,7 @@ Globe.prototype = {
 
     // disable motion blur if there is not enough momentum
     this.root.addUpdateCallback(_.bind(function() {
-      var rs = this.earthRotationController.rotationSpeed;
+      var rs = 0; // this.earthRotationController.rotationSpeed;
       var v = Math.abs(rs.y) * config.dirBlurFactor;
 
       if (v >= 0.1) {
@@ -346,24 +352,24 @@ Globe.prototype = {
         shininess: 1.0
       })
     );
-    var halo = new THREE.Mesh(
-      new THREE.SphereGeometry(config.earthRadius, 100, 100),
-      new AtmosphereMaterial({
-        alphaMap: this.loader.get('cloud_alpha_map'),
-        color: 0xAFD2E4,
-        power: 7.0,
-        coefficient: 1.0 // weird ios bug causes blackness with values < 1 :(
-      })
-    );
+    // var halo = new THREE.Mesh(
+    //   new THREE.SphereGeometry(config.earthRadius, 100, 100),
+    //   new AtmosphereMaterial({
+    //     alphaMap: this.loader.get('cloud_alpha_map'),
+    //     color: 0xAFD2E4,
+    //     power: 7.0,
+    //     coefficient: 1.0 // weird ios bug causes blackness with values < 1 :(
+    //   })
+    // );
 
-    halo.scale.setScalar(1.125);
+    //halo.scale.setScalar(1.125);
     // pulsate halo slightly
-    TweenMax.to(halo.scale, 6, {x:1.175, y:1.175, z: 1.175, ease:Power1.easeInOut, repeat:-1, yoyo:true});
+    //TweenMax.to(halo.scale, 6, {x:1.175, y:1.175, z: 1.175, ease:Power1.easeInOut, repeat:-1, yoyo:true});
     // store rotation animation so it can be slowed down on pointer down
-    halo.rotationAnimation = TweenMax.to(halo.rotation, 16, {y:Math.PI * 2, ease:Power0.easeIn, repeat:-1});
+    //halo.rotationAnimation = TweenMax.to(halo.rotation, 16, {y:Math.PI * 2, ease:Power0.easeIn, repeat:-1});
 
     this.root.add(earth, 'earth');
-    this.root.addTo(halo, 'earth', 'halo');
+    //this.root.addTo(halo, 'earth', 'halo');
 
     this.pointerController.register(earth);
 
@@ -381,13 +387,13 @@ Globe.prototype = {
     utils.createColorController(earthFolder, earth.material, 'specular', 'earth specular');
     earthFolder.add(earth.material, 'shininess').name('specular focus');
 
-    earthFolder.add(halo.scale, 'x').name('atmosphere scale').onChange(function(v) {
-      halo.scale.setScalar(v);
-    });
+    // earthFolder.add(halo.scale, 'x').name('atmosphere scale').onChange(function(v) {
+    //   halo.scale.setScalar(v);
+    // });
 
-    utils.createColorController(earthFolder, halo.material.uniforms.glowColor, 'value', 'atmosphere color');
-    earthFolder.add(halo.material.uniforms.coefficient, 'value').name('atmosphere coefficient');
-    earthFolder.add(halo.material.uniforms.power, 'value').name('atmosphere power');
+    // utils.createColorController(earthFolder, halo.material.uniforms.glowColor, 'value', 'atmosphere color');
+    // earthFolder.add(halo.material.uniforms.coefficient, 'value').name('atmosphere coefficient');
+    // earthFolder.add(halo.material.uniforms.power, 'value').name('atmosphere power');
 
     var controlsFolder = this.gui.addFolder('earth dragging');
     controlsFolder.add(this.earthRotationController, 'dragSpeed').name('drag speed');
@@ -411,22 +417,22 @@ Globe.prototype = {
     prefabGeometry.center();
 
     // init star animation system
-    var starSystem = new StarAnimationSystem(prefabGeometry, 20000, 400, 1400);
-    this.root.addTo(starSystem, 'earth', 'stars');
+    // var starSystem = new StarAnimationSystem(prefabGeometry, 20000, 400, 1400);
+    // this.root.addTo(starSystem, 'earth', 'stars');
 
     // rotate stars in opposite direction of earth
-    var earthRotationController = this.earthRotationController;
+    // var earthRotationController = this.earthRotationController;
 
-    this.root.addUpdateCallback(function() {
-      starSystem.update();
-      starSystem.rotation.y -= earthRotationController.rotationSpeed.y * 1.25;
-    });
+    // this.root.addUpdateCallback(function() {
+    //   starSystem.update();
+    //   starSystem.rotation.y -= earthRotationController.rotationSpeed.y * 1.25;
+    // });
 
     // DAT.GUI
     if (!this.gui) return;
 
-    var folder = this.gui.addFolder('stars');
-    utils.createColorController(folder, starSystem.material, 'color', 'star color');
+    // var folder = this.gui.addFolder('stars');
+    // utils.createColorController(folder, starSystem.material, 'color', 'star color');
   },
 
   initAsteroids:function() {
@@ -463,16 +469,16 @@ Globe.prototype = {
     // tiny spheres
     var prefabGeometry = new THREE.SphereGeometry(0.015, 8, 6);
     // intro and idle marker animations are separate objects for sanity reasons
-    var introAnimation = this.introMarkerAnimation = new IntroMarkerAnimationSystem(prefabGeometry, this.markerPositions);
-    var idleAnimation = this.idleMakerAnimation = new IdleMarkerAnimationSystem(prefabGeometry, this.markerPositions, introAnimation.geometry.attributes.color.array);
+    // var introAnimation = this.introMarkerAnimation = new IntroMarkerAnimationSystem(prefabGeometry, this.markerPositions);
+    // var idleAnimation = this.idleMakerAnimation = new IdleMarkerAnimationSystem(prefabGeometry, this.markerPositions, introAnimation.geometry.attributes.color.array);
 
-    this.root.addUpdateCallback(function() {
-      idleAnimation.update();
-    });
+    // this.root.addUpdateCallback(function() {
+    //   idleAnimation.update();
+    // });
 
     // pointer interaction things
     var earth = this.root.get('earth');
-    var halo = this.root.get('halo');
+    //var halo = this.root.get('halo');
     var earthMatrixInverse = new THREE.Matrix4();
 
     var searchLight = new THREE.PointLight(0xffffff, 0.0, 8.0, 2.0);
@@ -482,43 +488,44 @@ Globe.prototype = {
       overAttenuationDistance: 2.0,
       downAttenuationDistance: 4.0
     };
+
     // touch interaction
     if (this.pointerController.isTouchDevice) {
       earth.addEventListener('pointer_down', function(e) {
         updatePointerPosition(e.intersection.point);
         showSearchLight();
 
-        TweenMax.to(idleAnimation, 1.0, {attenuationDistance: interactionSettings.downAttenuationDistance, ease:Power2.easeOut});
+        // TweenMax.to(idleAnimation, 1.0, {attenuationDistance: interactionSettings.downAttenuationDistance, ease:Power2.easeOut});
       });
 
       earth.addEventListener('pointer_up', function(e) {
         hideSearchLight();
 
-        TweenMax.to(idleAnimation, 1.0, {attenuationDistance: 0.0, ease:Power2.easeOut});
+        // TweenMax.to(idleAnimation, 1.0, {attenuationDistance: 0.0, ease:Power2.easeOut});
       });
     }
     // mouse interaction
     else {
       earth.addEventListener('pointer_down', function(e) {
-        TweenMax.to(halo.rotationAnimation, 1.0, {timeScale:0.25});
-        TweenMax.to(idleAnimation, 1.0, {attenuationDistance: interactionSettings.downAttenuationDistance, ease:Power2.easeOut});
+        //TweenMax.to(halo.rotationAnimation, 1.0, {timeScale:0.25});
+        // TweenMax.to(idleAnimation, 1.0, {attenuationDistance: interactionSettings.downAttenuationDistance, ease:Power2.easeOut});
       });
 
       earth.addEventListener('pointer_up', function(e) {
-        TweenMax.to(halo.rotationAnimation, 1.0, {timeScale:1.0});
-        TweenMax.to(idleAnimation, 1.0, {attenuationDistance: interactionSettings.overAttenuationDistance, ease:Power2.easeOut});
+        // TweenMax.to(halo.rotationAnimation, 1.0, {timeScale:1.0});
+        // TweenMax.to(idleAnimation, 1.0, {attenuationDistance: interactionSettings.overAttenuationDistance, ease:Power2.easeOut});
       });
 
       earth.addEventListener('pointer_over', function(e) {
         showSearchLight();
 
-        TweenMax.fromTo(idleAnimation, 0.5, {attenuationDistance:0.0}, {attenuationDistance: interactionSettings.overAttenuationDistance, ease:Power2.easeOut});
+        // TweenMax.fromTo(idleAnimation, 0.5, {attenuationDistance:0.0}, {attenuationDistance: interactionSettings.overAttenuationDistance, ease:Power2.easeOut});
       });
 
       earth.addEventListener('pointer_out', function(e) {
         hideSearchLight();
 
-        TweenMax.to(idleAnimation, 0.5, {attenuationDistance:0.0, ease:Power2.easeOut});
+        // TweenMax.to(idleAnimation, 0.5, {attenuationDistance:0.0, ease:Power2.easeOut});
       });
     }
 
@@ -532,7 +539,7 @@ Globe.prototype = {
       earthMatrixInverse.identity().getInverse(earth.matrixWorld);
       point.applyMatrix4(earthMatrixInverse);
       // set position for active distance attenuation
-      idleAnimation.setPointerPosition(point);
+      // idleAnimation.setPointerPosition(point);
       // set light position slightly above the globe
       searchLight.position.copy(point);
       searchLight.position.multiplyScalar(1.25);
@@ -551,10 +558,10 @@ Globe.prototype = {
 
     var folder = this.gui.addFolder('markers');
     //utils.createColorController(folder, idleAnimation.material.uniforms.uPassiveColor, 'value', 'passive color');
-    utils.createColorController(folder, idleAnimation.material.uniforms.uActiveColor, 'value', 'active color');
-    folder.add(idleAnimation.material.uniforms.uScale.value, 'x').name('scale');
-    folder.add(idleAnimation.material.uniforms.uScale.value, 'y').name('passive scale delta');
-    folder.add(idleAnimation.material.uniforms.uScale.value, 'z').name('active scale delta');
+    // utils.createColorController(folder, idleAnimation.material.uniforms.uActiveColor, 'value', 'active color');
+    // folder.add(idleAnimation.material.uniforms.uScale.value, 'x').name('scale');
+    // folder.add(idleAnimation.material.uniforms.uScale.value, 'y').name('passive scale delta');
+    // folder.add(idleAnimation.material.uniforms.uScale.value, 'z').name('active scale delta');
     folder.add(interactionSettings, 'overAttenuationDistance').name('hover radius');
     folder.add(interactionSettings, 'downAttenuationDistance').name('down radius');
 
@@ -564,7 +571,7 @@ Globe.prototype = {
   },
 
   createIntroAnimation:function() {
-    var rotationController = this.earthRotationController;
+    // var rotationController = this.earthRotationController;
     var preloader = document.querySelector('#preloader');
     var eventDispatcher = this.eventDispatcher;
 
@@ -572,7 +579,7 @@ Globe.prototype = {
     var tl = new TimelineMax({repeat:0});
 
     tl.call(function() {
-      rotationController.enabled = false;
+      // rotationController.enabled = false;
       eventDispatcher.dispatchEvent({type:'preloader_hide_start'});
     });
     tl.to(preloader, 1.00, {opacity:0, ease:Power1.easeIn}, 0);
@@ -589,9 +596,9 @@ Globe.prototype = {
     tl.add(this.createCameraAnimation(11), 0.0);
     tl.add(this.createMarkersAnimation(10), 1.0);
 
-    tl.add(function() {
-      rotationController.enabled = true;
-    }, '-=1.0');
+    // tl.add(function() {
+    //   rotationController.enabled = true;
+    // }, '-=1.0');
 
     tl.timeScale(2);
 
@@ -600,8 +607,8 @@ Globe.prototype = {
 
     var ctrl = {
       replay:function() {
-        rotationController.enabled = false;
-        rotationController.reset();
+        // rotationController.enabled = false;
+        // rotationController.reset();
         tl.play('preloader_hide_complete');
       },
       timeScale:tl.timeScale()
@@ -616,27 +623,27 @@ Globe.prototype = {
   },
 
   createMarkersAnimation:function(duration) {
-    var introAnimation = this.introMarkerAnimation;
-    var idleAnimation = this.idleMakerAnimation;
+    // var introAnimation = this.introMarkerAnimation;
+    // var idleAnimation = this.idleMakerAnimation;
 
     var tl = new TimelineMax();
     var root = this.root;
 
-    tl.call(function() {
-      // swap intro and idle animation systems
-      root.remove(introAnimation);
-      root.remove(idleAnimation);
+    // tl.call(function() {
+    //   // swap intro and idle animation systems
+    //   root.remove(introAnimation);
+    //   root.remove(idleAnimation);
 
-      root.addTo(introAnimation, 'earth');
-    });
-    tl.fromTo(introAnimation, duration, {animationProgress:0}, {animationProgress:1, ease:Power0.easeIn});
+    //   root.addTo(introAnimation, 'earth');
+    // });
+    // tl.fromTo(introAnimation, duration, {animationProgress:0}, {animationProgress:1, ease:Power0.easeIn});
     tl.call(function() {
       // swap intro and idle animation systems
-      root.remove(introAnimation);
-      root.addTo(idleAnimation, 'earth');
+      // root.remove(introAnimation);
+      // root.addTo(idleAnimation, 'earth');
 
       // reset idle animation time for a smooth transition
-      idleAnimation.resetIdleAnimation();
+      // idleAnimation.resetIdleAnimation();
     });
 
     return tl;
@@ -664,9 +671,12 @@ Globe.prototype = {
     var tl = new TimelineMax({onUpdate: update});
     var distance = this.computeCameraDistance();
 
-    tl.to(proxy, duration, {angle:Math.PI * -1.5, distance:distance, eyeHeight:eyeHeight, ease:Power1.easeInOut});
+    //tl.to(proxy, duration, {angle:Math.PI * -1.5, distance:distance, eyeHeight:eyeHeight, ease:Power1.easeInOut});
 
-    update();
+    //update();
+
+    camera.position.set(0, 0, 25);
+    camera.lookAt(target);
 
     return tl;
   },
